@@ -370,8 +370,8 @@
                 this.id = data.id || Date.now().toString();
                 this.label = data.label || 'New Overlay';
                 this.token = data.token || '';
-                this.onMin = data.onMin || 1;
-                this.offMin = data.offMin || 3;
+                this.onMin = data.onMin || 0;
+                this.offMin = data.offMin || 0;
 
                 this.isRunning = false;
                 this.timerInterval = null;
@@ -574,8 +574,8 @@
 
         function loadAllSchedulers() {
             const data = JSON.parse(localStorage.getItem('uno_schedulers')) || [
-                { id: '1', label: 'UNO Ticker', token: '3LHZocfShz3S8mUOQQdhPY', onMin: 1, offMin: 3 },
-                { id: '2', label: 'UNO Essentials', token: '5mG5rKJqD1ECxc9LvVYbBu', onMin: 1, offMin: 3 }
+                { id: '1', label: 'UNO Ticker', token: '3LHZocfShz3S8mUOQQdhPY', onMin: 0, offMin: 0 },
+                { id: '2', label: 'UNO Essentials', token: '5mG5rKJqD1ECxc9LvVYbBu', onMin: 0, offMin: 0 }
             ];
             data.forEach(d => {
                 const s = new OverlayScheduler(d);
