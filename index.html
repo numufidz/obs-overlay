@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overlays.uno Scheduler</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #38bdf8;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #fff, var(--text-dim));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.15);
+        }
+
+        .scheduler-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 100px;
+            padding: 8px 16px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-dim);
+        }
+
+        .status-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .btn-main {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--primary);
+            filter: brightness(1.1);
+        }
+
+        .btn-main:active {
+            transform: translateY(0);
+        }
+
+        .btn-main.running {
+            background: var(--error);
+        }
+
+        .btn-main.running:hover {
+            box-shadow: 0 10px 20px -10px var(--error);
+        }
+
+        .timer-display {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 300;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .log-container {
+            margin-top: 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            height: 100px;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .log-entry.success {
+            color: var(--success);
+        }
+
+        .log-entry.error {
+            color: var(--error);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Overlay Scheduler</h1>
+        <p class="subtitle">Otomatisasi ON/OFF untuk Overlays.uno</p>
+
+        <div class="status-badge">
+            <div id="statusDot" class="status-dot"></div>
+            <span id="statusText">System Idle</span>
+        </div>
+
+        <div class="input-group">
+            <label>API Key / Token</label>
+            <input type="text" id="apiKey" value="3LHZocfShz3S8mUOQQdhPY" placeholder="Masukkan Token..">
+        </div>
+
+        <div class="scheduler-grid">
+            <div class="input-group">
+                <label>ON Duration (Menit)</label>
+                <input type="number" id="onDuration" value="1" min="0.1" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>OFF Duration (Menit)</label>
+                <input type="number" id="offDuration" value="3" min="0.1" step="0.1">
+            </div>
+        </div>
+
+        <div class="timer-display" id="timer">00:00</div>
+
+        <button id="mainBtn" class="btn-main">
+            <span id="btnText">Mulai Scheduler</span>
+        </button>
+
+        <div class="log-container" id="logs">
+            <div class="log-entry">Waiting for user...</div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let timerInterval = null;
+        let schedulerTimeout = null;
+        let currentState = 'OFF'; // Start state
+        let remainingTime = 0;
+
+        const apiKeyInput = document.getElementById('apiKey');
+        const onDurationInput = document.getElementById('onDuration');
+        const offDurationInput = document.getElementById('offDuration');
+        const mainBtn = document.getElementById('mainBtn');
+        const btnText = document.getElementById('btnText');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const timerDisplay = document.getElementById('timer');
+        const logsContainer = document.getElementById('logs');
+
+        function log(message, type = '') {
+            const div = document.createElement('div');
+            div.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            div.textContent = `[${time}] ${message}`;
+            logsContainer.prepend(div);
+        }
+
+        async function toggleOverlay(show) {
+            const token = apiKeyInput.value.trim();
+            const url = `https://app.overlays.uno/apiv2/controlapps/${token}/api`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        command: show ? "ShowOverlay" : "HideOverlay"
+                    })
+                });
+
+                if (response.ok) {
+                    log(`API Success: Turn ${show ? 'ON' : 'OFF'}`, 'success');
+                } else {
+                    log(`API Error: ${response.status}`, 'error');
+                }
+            } catch (err) {
+                log(`Network Error: ${err.message}`, 'error');
+            }
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            statusText.textContent = `Overlay is ${currentState} (${remainingTime}s left)`;
+            statusDot.className = 'status-dot ' + (currentState === 'ON' ? 'active' : '');
+        }
+
+        async function runCycle() {
+            if (!isRunning) return;
+
+            // Switch State
+            currentState = (currentState === 'ON' ? 'OFF' : 'ON');
+            const duration = currentState === 'ON' ?
+                parseFloat(onDurationInput.value) :
+                parseFloat(offDurationInput.value);
+
+            remainingTime = Math.round(duration * 60);
+
+            log(`Switching to ${currentState} for ${duration} minutes`);
+            await toggleOverlay(currentState === 'ON');
+            updateDisplay();
+
+            // Timer countdown
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    runCycle(); // Next state
+                }
+                updateDisplay();
+            }, 1000);
+        }
+
+        mainBtn.onclick = () => {
+            if (!isRunning) {
+                // Start
+                const token = apiKeyInput.value.trim();
+                if (!token) {
+                    alert("Masukkan Token API dulu, Pak!");
+                    return;
+                }
+
+                isRunning = true;
+                mainBtn.classList.add('running');
+                btnText.textContent = "Hentikan Scheduler";
+                log("Scheduler started");
+
+                currentState = 'OFF'; // Will flip to ON immediately
+                runCycle();
+            } else {
+                // Stop
+                isRunning = false;
+                clearInterval(timerInterval);
+                mainBtn.classList.remove('running');
+                btnText.textContent = "Mulai Scheduler";
+                statusDot.className = 'status-dot';
+                statusText.textContent = "System Idle";
+                timerDisplay.textContent = "00:00";
+                log("Scheduler stopped");
+                toggleOverlay(false); // Default to off when stopped
+            }
+        };
+    </script>
+
+</body>
+
+</html>
