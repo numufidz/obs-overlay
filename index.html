@@ -571,11 +571,50 @@
     </div>
 
     <script>
+        const groupManager = {
+            states: {}, // { groupId: { turnIndex: 0, members: [] } }
+            register(groupId, instance) {
+                if (!this.states[groupId]) this.states[groupId] = { turnIndex: 0, members: [] };
+                if (!this.states[groupId].members.includes(instance)) {
+                    this.states[groupId].members.push(instance);
+                }
+            },
+            unregister(groupId, instance) {
+                if (this.states[groupId]) {
+                    this.states[groupId].members = this.states[groupId].members.filter(m => m !== instance);
+                    if (this.states[groupId].members.length === 0) delete this.states[groupId];
+                }
+            },
+            isMyTurn(groupId, instance) {
+                const group = this.states[groupId];
+                if (!group) return true;
+                const activeMembers = group.members.filter(m => m.isRunning);
+                const idx = activeMembers.indexOf(instance);
+                if (idx === -1) return true;
+                return group.turnIndex % activeMembers.length === idx;
+            },
+            passTurn(groupId) {
+                if (this.states[groupId]) {
+                    this.states[groupId].turnIndex++;
+                }
+            },
+            getSyncSnapshot(groupId, requester) {
+                const group = this.states[groupId];
+                if (!group) return null;
+                const other = group.members.find(m => m !== requester && m.isRunning);
+                if (other) {
+                    return { state: other.currentState, time: other.remainingTime };
+                }
+                return null;
+            }
+        };
+
         class OverlayScheduler {
             constructor(data) {
                 this.id = data.id || Date.now().toString();
                 this.label = data.label || 'New Overlay';
                 this.token = data.token || '';
+                this.group = data.group || '';
                 this.onMin = data.onMin || 0;
                 this.offMin = data.offMin || 0;
 
@@ -619,6 +658,11 @@
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                             </button>
                         </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Group ID (Link)</label>
+                        <input type="text" id="group-${this.id}" value="${this.group}" placeholder="Nama grup (opsional)..">
                     </div>
 
                     <div class="durations" style="gap: 8px;">
@@ -666,7 +710,8 @@
                     logs: document.getElementById(`logs-${this.id}`),
                     remove: document.getElementById(`remove-${this.id}`),
                     open: document.getElementById(`open-${this.id}`),
-                    toggle: document.getElementById(`toggle-${this.id}`)
+                    toggle: document.getElementById(`toggle-${this.id}`),
+                    group: document.getElementById(`group-${this.id}`)
                 };
 
                 // Events
@@ -698,7 +743,7 @@
                 document.getElementById(`plus-off-${this.id}`).onclick = () => setupStepper(`off-${this.id}`, 0.1);
 
                 // Auto-save on change
-                const inputs = [this.dom.label, this.dom.token, this.dom.on, this.dom.off];
+                const inputs = [this.dom.label, this.dom.token, this.dom.on, this.dom.off, this.dom.group];
                 inputs.forEach(input => {
                     input.onchange = () => saveAllSchedulers();
                 });
@@ -769,7 +814,29 @@
                 this.remainingTime = Math.round(duration * 60);
 
                 this.log(`Switching to ${this.currentState} (${duration}m)`);
-                await this.sendApiRequest(this.currentState === 'ON');
+
+                let shouldTurnOn = this.currentState === 'ON';
+                if (shouldTurnOn && this.dom.group.value.trim()) {
+                    const group = this.dom.group.value.trim();
+                    const isMyTurn = groupManager.isMyTurn(group, this);
+                    if (!isMyTurn) {
+                        shouldTurnOn = false;
+                        this.log(`Waiting for Turn (Group: ${group})`);
+                        this.wasActiveThisTurn = false;
+                    } else {
+                        this.wasActiveThisTurn = true;
+                    }
+                } else if (shouldTurnOn) {
+                    this.wasActiveThisTurn = true;
+                }
+
+                await this.sendApiRequest(shouldTurnOn);
+
+                if (this.currentState === 'OFF' && this.dom.group.value.trim() && this.wasActiveThisTurn) {
+                    groupManager.passTurn(this.dom.group.value.trim());
+                    this.wasActiveThisTurn = false;
+                }
+
                 this.updateDisplay();
 
                 if (this.timerInterval) clearInterval(this.timerInterval);
@@ -793,9 +860,27 @@
                     this.dom.btn.textContent = "Hentikan Scheduler";
                     this.dom.btn.classList.add('running');
                     this.log("Started");
-                    this.currentState = 'OFF';
+
+                    // Sync logic for groups
+                    const groupId = this.dom.group.value.trim();
+                    if (groupId) {
+                        groupManager.register(groupId, this);
+                        const syncRef = groupManager.getSyncSnapshot(groupId, this);
+                        if (syncRef) {
+                            this.currentState = syncRef.state;
+                            this.remainingTime = syncRef.time;
+                            this.log(`Group Synced: ${this.currentState} (${this.remainingTime}s)`);
+                        } else {
+                            this.currentState = 'OFF'; // Default start
+                        }
+                    } else {
+                        this.currentState = 'OFF';
+                    }
+
                     this.runCycle();
                 } else {
+                    const groupId = this.dom.group.value.trim();
+                    if (groupId) groupManager.unregister(groupId, this);
                     this.isRunning = false;
                     clearInterval(this.timerInterval);
                     this.dom.btn.textContent = "Mulai Scheduler";
@@ -821,6 +906,7 @@
                     id: this.id,
                     label: this.dom.label.value,
                     token: this.dom.token.value,
+                    group: this.dom.group.value,
                     onMin: this.dom.on.value,
                     offMin: this.dom.off.value
                 };
