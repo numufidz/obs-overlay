@@ -604,40 +604,72 @@
 
     <script>
         const groupManager = {
-            states: {}, // { groupId: { turnIndex: 0, members: [] } }
+            groups: {}, // { groupId: { turnIndex: 0, members: [], currentState: 'OFF', remainingTime: 0, timerInterval: null } }
             register(groupId, instance) {
-                if (!this.states[groupId]) this.states[groupId] = { turnIndex: 0, members: [] };
-                if (!this.states[groupId].members.includes(instance)) {
-                    this.states[groupId].members.push(instance);
+                if (!this.groups[groupId]) {
+                    this.groups[groupId] = { turnIndex: 0, members: [], currentState: 'OFF', remainingTime: 0, timerInterval: null };
                 }
+                if (!this.groups[groupId].members.includes(instance)) {
+                    this.groups[groupId].members.push(instance);
+                }
+                return this.groups[groupId];
             },
             unregister(groupId, instance) {
-                if (this.states[groupId]) {
-                    this.states[groupId].members = this.states[groupId].members.filter(m => m !== instance);
-                    if (this.states[groupId].members.length === 0) delete this.states[groupId];
+                const group = this.groups[groupId];
+                if (group) {
+                    group.members = group.members.filter(m => m !== instance);
+                    const activeMembers = group.members.filter(m => m.isRunning);
+                    if (activeMembers.length === 0) {
+                        this.stopTimer(groupId);
+                    }
+                    if (group.members.length === 0) delete this.groups[groupId];
+                }
+            },
+            startTimer(groupId) {
+                const group = this.groups[groupId];
+                if (!group || group.timerInterval) return;
+
+                const tick = () => {
+                    if (group.remainingTime > 0) {
+                        group.remainingTime--;
+                    } else {
+                        group.currentState = (group.currentState === 'ON' ? 'OFF' : 'ON');
+                        if (group.currentState === 'OFF') group.turnIndex++;
+
+                        const activeMembers = group.members.filter(m => m.isRunning);
+                        const firstActive = activeMembers[0];
+                        if (firstActive) {
+                            const dur = group.currentState === 'ON' ? parseFloat(firstActive.dom.on.value) : parseFloat(firstActive.dom.off.value);
+                            group.remainingTime = Math.round(dur * 60);
+                        }
+
+                        activeMembers.forEach(m => m.onCycleTransition(group.currentState, group.remainingTime));
+                    }
+
+                    group.members.forEach(m => {
+                        if (m.isRunning) {
+                            m.remainingTime = group.remainingTime;
+                            m.currentState = group.currentState;
+                            m.updateDisplay();
+                        }
+                    });
+                };
+                group.timerInterval = setInterval(tick, 1000);
+            },
+            stopTimer(groupId) {
+                const group = this.groups[groupId];
+                if (group && group.timerInterval) {
+                    clearInterval(group.timerInterval);
+                    group.timerInterval = null;
                 }
             },
             isMyTurn(groupId, instance) {
-                const group = this.states[groupId];
+                const group = this.groups[groupId];
                 if (!group) return true;
                 const activeMembers = group.members.filter(m => m.isRunning);
                 const idx = activeMembers.indexOf(instance);
                 if (idx === -1) return true;
                 return group.turnIndex % activeMembers.length === idx;
-            },
-            passTurn(groupId) {
-                if (this.states[groupId]) {
-                    this.states[groupId].turnIndex++;
-                }
-            },
-            getSyncSnapshot(groupId, requester) {
-                const group = this.states[groupId];
-                if (!group) return null;
-                const other = group.members.find(m => m !== requester && m.isRunning);
-                if (other) {
-                    return { state: other.currentState, time: other.remainingTime };
-                }
-                return null;
             }
         };
 
@@ -866,37 +898,36 @@
                 this.dom.dot.className = 'status-dot ' + (this.isRunning && this.currentState === 'ON' ? 'active' : '');
             }
 
-            async runCycle() {
+            async onCycleTransition(newState, nextTime) {
                 if (!this.isRunning) return;
+
+                this.currentState = newState;
+                this.remainingTime = nextTime;
+
+                this.log(`Cycle: ${this.currentState} (${this.remainingTime}s)`);
+
+                let shouldTurnOn = this.currentState === 'ON';
+                if (shouldTurnOn && this.group) {
+                    const isMyTurn = groupManager.isMyTurn(this.group, this);
+                    if (!isMyTurn) {
+                        shouldTurnOn = false;
+                        this.log(`Group: Waiting for Turn`);
+                    }
+                }
+
+                await this.sendApiRequest(shouldTurnOn);
+                this.updateDisplay();
+            }
+
+            async runCycle() {
+                if (!this.isRunning || this.group) return; // Group timer handles this if in group
 
                 this.currentState = (this.currentState === 'ON' ? 'OFF' : 'ON');
                 const duration = this.currentState === 'ON' ? parseFloat(this.dom.on.value) : parseFloat(this.dom.off.value);
                 this.remainingTime = Math.round(duration * 60);
 
                 this.log(`Switching to ${this.currentState} (${duration}m)`);
-
-                let shouldTurnOn = this.currentState === 'ON';
-                if (shouldTurnOn && this.group) {
-                    const group = this.group;
-                    const isMyTurn = groupManager.isMyTurn(group, this);
-                    if (!isMyTurn) {
-                        shouldTurnOn = false;
-                        this.log(`Waiting for Turn (Group: ${group})`);
-                        this.wasActiveThisTurn = false;
-                    } else {
-                        this.wasActiveThisTurn = true;
-                    }
-                } else if (shouldTurnOn) {
-                    this.wasActiveThisTurn = true;
-                }
-
-                await this.sendApiRequest(shouldTurnOn);
-
-                if (this.currentState === 'OFF' && this.group && this.wasActiveThisTurn) {
-                    groupManager.passTurn(this.group);
-                    this.wasActiveThisTurn = false;
-                }
-
+                await this.sendApiRequest(this.currentState === 'ON');
                 this.updateDisplay();
 
                 if (this.timerInterval) clearInterval(this.timerInterval);
@@ -921,28 +952,35 @@
                     this.dom.btn.classList.add('running');
                     this.log("Started");
 
-                    // Sync logic for groups
                     const groupId = this.group;
                     if (groupId) {
-                        groupManager.register(groupId, this);
-                        const syncRef = groupManager.getSyncSnapshot(groupId, this);
-                        if (syncRef) {
-                            this.currentState = syncRef.state;
-                            this.remainingTime = syncRef.time;
-                            this.log(`Group Synced: ${this.currentState} (${this.remainingTime}s)`);
+                        const group = groupManager.register(groupId, this);
+                        if (group.members.filter(m => m.isRunning).length > 1) {
+                            // Sync with existing group timer
+                            this.currentState = group.currentState;
+                            this.remainingTime = group.remainingTime;
+                            this.log(`Joined Group: ${this.currentState} (${this.remainingTime}s)`);
                         } else {
-                            this.currentState = 'OFF'; // Default start
+                            // First one starts the group timer
+                            group.currentState = 'OFF';
+                            const dur = parseFloat(this.dom.off.value);
+                            group.remainingTime = Math.round(dur * 60);
+                            this.currentState = group.currentState;
+                            this.remainingTime = group.remainingTime;
+                            groupManager.startTimer(groupId);
                         }
                     } else {
                         this.currentState = 'OFF';
+                        this.runCycle();
                     }
-
-                    this.runCycle();
                 } else {
                     const groupId = this.group;
                     if (groupId) groupManager.unregister(groupId, this);
+
                     this.isRunning = false;
-                    clearInterval(this.timerInterval);
+                    if (this.timerInterval) clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+
                     this.dom.btn.textContent = "Mulai Scheduler";
                     this.dom.btn.classList.remove('running');
                     this.dom.timer.textContent = "00:00";
