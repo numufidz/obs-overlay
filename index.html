@@ -415,14 +415,27 @@
             <h1>Dynamic Overlay Scheduler</h1>
             <p>Dashboard kontrol overlay mandiri dan fleksibel</p>
         </div>
-        <button class="btn-add" id="btnAddOverlay">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Tambah Overlay
-        </button>
+        <div class="header-btns" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="https://overlays.uno/myoverlays/all" target="_blank" class="btn-add"
+                style="background: rgba(255,255,255,0.1); box-shadow: none; text-decoration: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                My Overlays
+            </a>
+            <button class="btn-add" id="btnAddOverlay">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Tambah Overlay
+            </button>
+        </div>
     </div>
 
     <div class="grid" id="schedulerGrid">
