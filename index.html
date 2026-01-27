@@ -361,6 +361,40 @@
             box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
         }
 
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .btn-manual {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-manual:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-manual.btn-on:active {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-manual.btn-off:active {
+            background: var(--error);
+            color: white;
+        }
+
         .btn-main.running {
             background: var(--error);
             box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
@@ -507,6 +541,11 @@
                         <div class="timer-val" id="timer-${this.id}">00:00</div>
                     </div>
 
+                    <div class="btn-group">
+                        <button class="btn-manual btn-on" id="manual-on-${this.id}">MANUAL ON</button>
+                        <button class="btn-manual btn-off" id="manual-off-${this.id}">MANUAL OFF</button>
+                    </div>
+
                     <button class="btn-main" id="btn-${this.id}">Mulai Scheduler</button>
 
                     <div class="logs" id="logs-${this.id}">
@@ -527,12 +566,22 @@
                     state: document.getElementById(`state-${this.id}`),
                     logs: document.getElementById(`logs-${this.id}`),
                     remove: document.getElementById(`remove-${this.id}`),
-                    open: document.getElementById(`open-${this.id}`)
+                    open: document.getElementById(`open-${this.id}`),
+                    manualOn: document.getElementById(`manual-on-${this.id}`),
+                    manualOff: document.getElementById(`manual-off-${this.id}`)
                 };
 
                 // Events
                 this.dom.btn.onclick = () => this.toggleScheduler();
                 this.dom.remove.onclick = () => this.remove();
+                this.dom.manualOn.onclick = () => {
+                    this.log("Manual Force ON triggered");
+                    this.sendApiRequest(true);
+                };
+                this.dom.manualOff.onclick = () => {
+                    this.log("Manual Force OFF triggered");
+                    this.sendApiRequest(false);
+                };
                 this.dom.open.onclick = () => {
                     const token = this.dom.token.value.trim();
                     if (token) window.open(`https://app.overlays.uno/control/${token}`, '_blank');
