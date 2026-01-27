@@ -118,13 +118,24 @@
             max-width: 1200px;
         }
 
+        @media (max-width: 600px) {
+            body {
+                padding: 15px 10px;
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+
         .card {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 12px;
             box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
             animation: fadeIn 0.5s ease-out;
             display: flex;
@@ -132,6 +143,13 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 10px;
+                border-radius: 12px;
+            }
         }
 
         @keyframes fadeIn {
@@ -150,18 +168,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .card-title-group {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex: 1;
+            min-width: 0;
         }
 
         .card-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: white;
             background: none;
@@ -169,6 +188,9 @@
             border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
             padding-bottom: 2px;
             width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .card-title:focus {
@@ -517,27 +539,27 @@
                         <label>API Key / Token</label>
                         <div style="display: flex; gap: 6px;">
                             <input type="text" id="token-${this.id}" value="${this.token}" placeholder="Token.." style="flex: 1;">
-                            <button class="btn-step" id="open-${this.id}" title="Buka Kontrol Asli" style="height: 38px; width: 38px; border-radius: 10px;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            <button class="btn-step" id="open-${this.id}" title="Buka Kontrol Asli" style="height: 32px; width: 32px; border-radius: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                             </button>
                         </div>
                     </div>
 
-                    <div class="durations" style="gap: 12px;">
+                    <div class="durations" style="gap: 8px;">
                         <div class="input-group">
-                            <label>ON (Menit)</label>
-                            <div class="stepper" style="border-radius: 10px;">
-                                <button class="btn-step" id="minus-on-${this.id}" style="width: 38px; height: 38px;">-</button>
+                            <label>ON</label>
+                            <div class="stepper">
+                                <button class="btn-step" id="minus-on-${this.id}">-</button>
                                 <input type="number" id="on-${this.id}" value="${this.onMin}" min="0" step="0.1">
-                                <button class="btn-step" id="plus-on-${this.id}" style="width: 38px; height: 38px;">+</button>
+                                <button class="btn-step" id="plus-on-${this.id}">+</button>
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>OFF (Menit)</label>
-                            <div class="stepper" style="border-radius: 10px;">
-                                <button class="btn-step" id="minus-off-${this.id}" style="width: 38px; height: 38px;">-</button>
+                            <label>OFF</label>
+                            <div class="stepper">
+                                <button class="btn-step" id="minus-off-${this.id}">-</button>
                                 <input type="number" id="off-${this.id}" value="${this.offMin}" min="0" step="0.1">
-                                <button class="btn-step" id="plus-off-${this.id}" style="width: 38px; height: 38px;">+</button>
+                                <button class="btn-step" id="plus-off-${this.id}">+</button>
                             </div>
                         </div>
                     </div>
