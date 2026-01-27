@@ -425,38 +425,68 @@
             box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
         }
 
-        .btn-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+        /* Toggle Switch */
+        .switch-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 12px;
-        }
-
-        .btn-manual {
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
             background: rgba(255, 255, 255, 0.05);
-            color: var(--text-dim);
-            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .switch-label {
+            font-size: 11px;
             font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
             cursor: pointer;
-            transition: all 0.2s;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 20px;
         }
 
-        .btn-manual:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
         }
 
-        .btn-manual.btn-on:active {
-            background: var(--success);
-            color: white;
+        input:checked+.slider {
+            background-color: var(--success);
         }
 
-        .btn-manual.btn-off:active {
-            background: var(--error);
-            color: white;
+        input:checked+.slider:before {
+            transform: translateX(16px);
         }
 
         .btn-main.running {
@@ -572,6 +602,14 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </div>
+
+                    <div class="switch-group">
+                        <span class="switch-label">Manual Power</span>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-${this.id}">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                     
                     <div class="input-group">
                         <label>API Key / Token</label>
@@ -607,11 +645,6 @@
                         <div class="timer-val" id="timer-${this.id}">00:00</div>
                     </div>
 
-                    <div class="btn-group" style="gap: 8px; margin-bottom: 8px;">
-                        <button class="btn-manual btn-on" id="manual-on-${this.id}" style="padding: 8px; font-size: 11px;">FORCE ON</button>
-                        <button class="btn-manual btn-off" id="manual-off-${this.id}" style="padding: 8px; font-size: 11px;">FORCE OFF</button>
-                    </div>
-
                     <button class="btn-main" id="btn-${this.id}" style="padding: 10px; font-size: 13px;">Mulai Scheduler</button>
 
                     <div class="logs" id="logs-${this.id}" style="margin-top: 12px; height: 60px; font-size: 10px;">
@@ -633,20 +666,16 @@
                     logs: document.getElementById(`logs-${this.id}`),
                     remove: document.getElementById(`remove-${this.id}`),
                     open: document.getElementById(`open-${this.id}`),
-                    manualOn: document.getElementById(`manual-on-${this.id}`),
-                    manualOff: document.getElementById(`manual-off-${this.id}`)
+                    toggle: document.getElementById(`toggle-${this.id}`)
                 };
 
                 // Events
                 this.dom.btn.onclick = () => this.toggleScheduler();
                 this.dom.remove.onclick = () => this.remove();
-                this.dom.manualOn.onclick = () => {
-                    this.log("Manual Force ON triggered");
-                    this.sendApiRequest(true);
-                };
-                this.dom.manualOff.onclick = () => {
-                    this.log("Manual Force OFF triggered");
-                    this.sendApiRequest(false);
+                this.dom.toggle.onchange = (e) => {
+                    const isChecked = e.target.checked;
+                    this.log(`Manual Toggle ${isChecked ? 'ON' : 'OFF'} triggered`);
+                    this.sendApiRequest(isChecked);
                 };
                 this.dom.open.onclick = () => {
                     const token = this.dom.token.value.trim();
