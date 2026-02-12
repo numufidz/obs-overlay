@@ -580,11 +580,14 @@
 
         /* Compact Mode Styles */
         body.compact-mode {
-            padding: 10px 10px;
+            padding: 10px;
         }
 
         body.compact-mode .header {
             margin-bottom: 10px;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
         }
 
         body.compact-mode .header-text h1 {
@@ -593,6 +596,19 @@
 
         body.compact-mode .header-text p {
             display: none;
+        }
+
+        body.compact-mode .header-btns {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        body.compact-mode .btn-compact,
+        body.compact-mode .btn-add {
+            padding: 8px 12px;
+            font-size: 12px;
         }
 
         body.compact-mode .grid {
@@ -605,7 +621,7 @@
             display: flex;
             flex-direction: row;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         /* Horizontal layout: Name | Toggle | Button */
@@ -616,21 +632,21 @@
         }
 
         body.compact-mode .card-title-group {
-            gap: 8px;
+            gap: 6px;
         }
 
         body.compact-mode .card-title {
-            font-size: 13px;
+            font-size: 12px;
         }
 
         body.compact-mode .btn-remove {
-            padding: 4px 6px;
+            padding: 3px 5px;
             font-size: 10px;
         }
 
         body.compact-mode .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             flex-shrink: 0;
         }
 
@@ -643,21 +659,37 @@
             display: none;
         }
 
-        /* Keep only the toggle switch visible - compact horizontal */
+        /* Compact toggle switch */
         body.compact-mode .switch-group {
             margin-bottom: 0;
-            padding: 6px 10px;
+            padding: 4px 8px;
             flex-shrink: 0;
             min-width: auto;
+            background: transparent;
+            border: none;
         }
 
         body.compact-mode .switch-label {
             display: none;
         }
 
+        body.compact-mode .switch {
+            width: 32px;
+            height: 18px;
+        }
+
+        body.compact-mode .slider:before {
+            height: 12px;
+            width: 12px;
+        }
+
+        body.compact-mode input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
         body.compact-mode .btn-main {
-            padding: 8px 16px;
-            font-size: 12px;
+            padding: 6px 12px;
+            font-size: 11px;
             white-space: nowrap;
             flex-shrink: 0;
         }
