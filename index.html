@@ -593,66 +593,49 @@
 
         body.compact-mode .grid {
             gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        /* Single column when window is narrow */
+        @media (max-width: 650px) {
+            body.compact-mode .grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         body.compact-mode .card {
-            padding: 8px;
+            padding: 10px;
         }
 
         body.compact-mode .card-header {
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         body.compact-mode .card-title {
-            font-size: 12px;
+            font-size: 13px;
         }
 
-        body.compact-mode .switch-group,
-        body.compact-mode .input-group label,
+        /* Hide everything except: name, toggle, button */
+        body.compact-mode .input-group,
+        body.compact-mode .group-selector,
+        body.compact-mode .durations,
+        body.compact-mode .timer-row,
         body.compact-mode .logs {
             display: none;
         }
 
-        body.compact-mode .input-group {
-            margin-bottom: 6px;
-        }
-
-        body.compact-mode input {
-            padding: 6px 10px;
-            font-size: 11px;
-        }
-
-        body.compact-mode .durations {
-            gap: 6px;
-        }
-
-        body.compact-mode .stepper input {
-            padding: 8px 0;
-            font-size: 11px;
-        }
-
-        body.compact-mode .btn-step {
-            width: 28px;
-            height: 28px;
-            font-size: 14px;
-        }
-
-        body.compact-mode .timer-row {
-            padding: 6px 8px;
-            margin: 6px 0;
-        }
-
-        body.compact-mode .timer-val {
-            font-size: 14px;
+        /* Keep only the toggle switch visible */
+        body.compact-mode .switch-group {
+            margin-bottom: 10px;
         }
 
         body.compact-mode .btn-main {
-            padding: 8px;
-            font-size: 12px;
+            padding: 10px;
+            font-size: 13px;
         }
 
         body.compact-mode .btn-remove {
-            padding: 3px 6px;
+            padding: 4px 7px;
             font-size: 11px;
         }
 
