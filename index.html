@@ -584,7 +584,11 @@
         }
 
         body.compact-mode .header {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+        }
+
+        body.compact-mode .header-text h1 {
+            font-size: 16px;
         }
 
         body.compact-mode .header-text p {
@@ -592,27 +596,42 @@
         }
 
         body.compact-mode .grid {
-            gap: 8px;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        }
-
-        /* Single column when window is narrow */
-        @media (max-width: 650px) {
-            body.compact-mode .grid {
-                grid-template-columns: 1fr;
-            }
+            gap: 6px;
+            grid-template-columns: 1fr;
         }
 
         body.compact-mode .card {
-            padding: 10px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
         }
 
+        /* Horizontal layout: Name | Toggle | Button */
         body.compact-mode .card-header {
-            margin-bottom: 8px;
+            margin-bottom: 0;
+            flex: 1;
+            min-width: 0;
+        }
+
+        body.compact-mode .card-title-group {
+            gap: 8px;
         }
 
         body.compact-mode .card-title {
             font-size: 13px;
+        }
+
+        body.compact-mode .btn-remove {
+            padding: 4px 6px;
+            font-size: 10px;
+        }
+
+        body.compact-mode .status-dot {
+            width: 8px;
+            height: 8px;
+            flex-shrink: 0;
         }
 
         /* Hide everything except: name, toggle, button */
@@ -624,24 +643,23 @@
             display: none;
         }
 
-        /* Keep only the toggle switch visible */
+        /* Keep only the toggle switch visible - compact horizontal */
         body.compact-mode .switch-group {
-            margin-bottom: 10px;
+            margin-bottom: 0;
+            padding: 6px 10px;
+            flex-shrink: 0;
+            min-width: auto;
+        }
+
+        body.compact-mode .switch-label {
+            display: none;
         }
 
         body.compact-mode .btn-main {
-            padding: 10px;
-            font-size: 13px;
-        }
-
-        body.compact-mode .btn-remove {
-            padding: 4px 7px;
-            font-size: 11px;
-        }
-
-        body.compact-mode .status-dot {
-            width: 8px;
-            height: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .btn-compact {
