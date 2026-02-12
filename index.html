@@ -617,31 +617,45 @@
         }
 
         body.compact-mode .card {
-            padding: 8px 12px;
+            padding: 6px 10px;
             display: flex;
             flex-direction: row;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        /* Horizontal layout: Name | Toggle | Button */
+        /* Horizontal layout: Name | Toggle | Button | Remove */
         body.compact-mode .card-header {
             margin-bottom: 0;
             flex: 1;
             min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         body.compact-mode .card-title-group {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
             gap: 6px;
         }
 
         body.compact-mode .card-title {
             font-size: 12px;
+            flex: 1;
+            min-width: 80px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         body.compact-mode .btn-remove {
             padding: 3px 5px;
             font-size: 10px;
+            flex-shrink: 0;
         }
 
         body.compact-mode .status-dot {
@@ -662,7 +676,7 @@
         /* Compact toggle switch */
         body.compact-mode .switch-group {
             margin-bottom: 0;
-            padding: 4px 8px;
+            padding: 0;
             flex-shrink: 0;
             min-width: auto;
             background: transparent;
@@ -688,10 +702,26 @@
         }
 
         body.compact-mode .btn-main {
-            padding: 6px 12px;
+            padding: 6px 10px;
             font-size: 11px;
             white-space: nowrap;
             flex-shrink: 0;
+            width: auto;
+            /* Reset width from 100% */
+            min-width: 80px;
+        }
+
+        body.compact-mode .card-title {
+            font-size: 12px;
+            flex: 1;
+            width: 100%;
+            /* Ensure it fills the flex container */
+            min-width: 60px;
+            /* Reduced min-width to prevent overflow */
+            padding: 4px 6px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-compact {
